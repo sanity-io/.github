@@ -15,9 +15,21 @@ repository:
   # Only rebase and squash merges are allowed, as faulty merge conflict handling is visible in those
   # while merge commits have the ability to erase commits from the history in a hidden way
   allow_merge_commit: false
+  
+  # Usually the PR title should be the commit title when squash merging
+  squash_merge_commit_title: COMMIT_OR_PR_TITLE
+  
+  # Squash merge commit bodies should match the commit messages as we use conventional commits on most repos
+  squash_merge_commit_message: COMMIT_MESSAGES
 
   # It's easy to forget to delete branches on merging
-  delete_branch_on_merge: true 
+  delete_branch_on_merge: true
+  
+  # Allow auto merging on repos that supports it
+  allow_auto_merge: true
+  
+  # Renovatebot can be a bit slow to update branches if the queue is long, it's useful to let the GitHub UI update branches for you
+  allow_update_branch: true
   
 branches:
   - name: main
