@@ -26,10 +26,10 @@ repository:
   delete_branch_on_merge: true
   
   # Allow auto merging on repos that supports it
-  # allow_auto_merge: true
+  allow_auto_merge: true
   
   # Renovatebot can be a bit slow to update branches if the queue is long, it's useful to let the GitHub UI update branches for you
-  # allow_update_branch: true
+  allow_update_branch: true
   
 branches:
   - name: main
