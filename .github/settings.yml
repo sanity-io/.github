@@ -1,5 +1,6 @@
 # These settings are synced to GitHub by https://probot.github.io/apps/settings/
-# To enable it on your repo you'll need to add it to the allow list first: https://github.com/organizations/sanity-io/settings/installations/32928189#:~:text=and%20repository%20projects-,Repository%20access,-All%20repositories
+# To enable it on your repo you'll need to add it to the allow list first: 
+# https://github.com/organizations/sanity-io/settings/installations/32928189#:~:text=and%20repository%20projects-,Repository%20access,-All%20repositories
 
 # To override any of these defaults, create a `.github/settings.yml` in your own repo
 repository:
