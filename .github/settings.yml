@@ -1,0 +1,35 @@
+# These settings are synced to GitHub by https://probot.github.io/apps/settings/
+# To enable it on your repo you'll need to add it to the allow list first: https://github.com/organizations/sanity-io/settings/installations/32928189#:~:text=and%20repository%20projects-,Repository%20access,-All%20repositories
+
+# To override any of these defaults, create a `.github/settings.yml` in your own repo
+repository:
+  # `main` is the default branch name on new repos, but we set it explicitly here to make sure the `branches` configuration is setup correctly
+  default_branch: main
+
+  # Projects are off by default as we use Shortcut to manage our roadmaps
+  has_projects: false
+  
+  # Wikis are off by default, as we use dedicated docs websites and README.md files instead
+  has_wiki: true
+  
+  # Only rebase and squash merges are allowed, as faulty merge conflict handling is visible in those
+  # while merge commits have the ability to erase commits from the history in a hidden way
+  allow_merge_commit: true
+
+  # It's easy to forget to delete branches on merging
+  delete_branch_on_merge: true 
+  
+branches:
+  - name: main
+    # https://docs.github.com/en/rest/reference/repos#update-branch-protection
+    # Branch Protection settings
+    protection:
+      # Our semantic-release-preset isn't compatible with these yet
+      required_pull_request_reviews: null
+      required_status_checks: null       
+      restrictions: null
+      
+      # Prevent merge commits from being pushed to matching branches
+      required_linear_history: true
+      # Also require linear history for admins
+      enforce_admins: true
