@@ -10,11 +10,11 @@ repository:
   has_projects: false
   
   # Wikis are off by default, as we use dedicated docs websites and README.md files instead
-  has_wiki: true
+  has_wiki: false
   
   # Only rebase and squash merges are allowed, as faulty merge conflict handling is visible in those
   # while merge commits have the ability to erase commits from the history in a hidden way
-  allow_merge_commit: true
+  allow_merge_commit: false
 
   # It's easy to forget to delete branches on merging
   delete_branch_on_merge: true 
