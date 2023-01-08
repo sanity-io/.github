@@ -4,9 +4,6 @@
 
 # To override any of these defaults, create a `.github/settings.yml` in your own repo
 repository:
-  # `main` is the default branch name on new repos, but we set it explicitly here to make sure the `branches` configuration is setup correctly
-  default_branch: main
-
   # Projects are off by default as we use Shortcut to manage our roadmaps
   has_projects: false
 
@@ -25,18 +22,3 @@ repository:
 
   # It's easy to forget to delete branches on merging
   delete_branch_on_merge: true
-
-branches:
-  - name: main
-    # https://docs.github.com/en/rest/reference/repos#update-branch-protection
-    # Branch Protection settings
-    protection:
-      # Our semantic-release-preset isn't compatible with these yet
-      required_pull_request_reviews: null
-      required_status_checks: null
-      restrictions: null
-
-      # Prevent merge commits from being pushed to matching branches
-      required_linear_history: true
-      # Also require linear history for admins
-      enforce_admins: true
