@@ -12,7 +12,8 @@ We will work with the reporting party to fix the findings, and commit to publicl
 Thank you for your help in making Sanity safer to use for everyone!
 
 ### Bug Bounty Program information
-Sanity does not have a formal bug bounty program **at the moment**, but we do consider all reports for rewards when the quality and impact is high enough.
+
+Sanity has a bugbounty program: http://sanity.io/bugbounty - please read the policy and submit as you see fit!
 
 
 -----
