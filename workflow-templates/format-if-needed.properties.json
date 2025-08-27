@@ -1,0 +1,7 @@
+{
+  "name": "Format if needed Workflow",
+  "description": "Requires pnpm, and a format script in the root package.json",
+  "filePatterns": [
+    "^pnpm-lock\\.yaml$"
+  ]
+}

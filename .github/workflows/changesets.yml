@@ -1,0 +1,75 @@
+name: Create Release Pull Request or Publish to npm with Changesets
+
+on:
+  workflow_call:
+    inputs:
+      TURBO_TEAM:
+        required: false
+        description: 'Needed for using turborepo with remote caching'
+        type: string
+    secrets:
+      ECOSPARK_APP_ID:
+        required: true
+      ECOSPARK_APP_PRIVATE_KEY:
+        required: true
+      TURBO_TOKEN:
+        required: false
+        description: 'Needed for using turborepo with remote caching'
+
+
+concurrency: ${{ github.repository_owner_id }}-${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: read # for checkout
+  id-token: write # to enable use of OIDC for npm provenance
+
+jobs:
+  changesets:
+    if: github.repository_owner == 'sanity-io'
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ inputs.TURBO_TEAM }}
+    permissions:
+      contents: read # for checkout
+      id-token: write # to enable use of OIDC for npm provenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.ECOSPARK_APP_ID }}
+          private-key: ${{ secrets.ECOSPARK_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          # Uses generated token to allow pushing commits back
+          token: ${{ steps.app-token.outputs.token }}
+          # Make sure the value of GITHUB_TOKEN will not be persisted in repo's config
+          persist-credentials: false
+      - name: Get app token user id
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      - name: Setup git user
+        run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+          node-version: lts/*
+        # temporary until setup-node action comes with npm version that contains oidc setup by default
+      - name: Update npm to use trusted publishing (OIDC)
+        run: npm install -g npm@latest
+      - run: pnpm install
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
+        with:
+          publish: pnpm release
+          setupGitUser: false
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          NPM_CONFIG_PROVENANCE: true
