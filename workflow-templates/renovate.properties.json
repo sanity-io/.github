@@ -1,0 +1,7 @@
+{
+  "name": "Add Changeset to Renovate PRs from Conventional Commits",
+  "description": "Requires changesets to already be setup as well as renovatebot",
+  "filePatterns": [
+    "^\\.changeset/config\\.json$"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Changesets Release Workflow",
+  "description": "Requires changesets to already be setup, pnpm as the package manager, and the root package.json must have a 'release' script that eventually calls 'changeset publish'",
+  "filePatterns": [
+    "^\\.changeset/config\\.json$",
+    "^pnpm-lock\\.yaml$"
+  ]
+}
