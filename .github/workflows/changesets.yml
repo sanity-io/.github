@@ -68,8 +68,8 @@ jobs:
         id: changesets
         uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
         with:
-          publish: 'pnpm run --if-present release || pnpm exec changeset publish'
-          version: 'pnpm run --if-present version || pnpm exec changeset version'
+          publish: 'pnpm run --if-present release || changeset publish'
+          version: 'pnpm run --if-present version || changeset version'
           setupGitUser: false
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
