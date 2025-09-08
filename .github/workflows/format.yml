@@ -37,7 +37,7 @@ jobs:
       - uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7
         with:
           body: I ran `pnpm format` 🧑‍💻
-          branch: actions/format
+          branch: actions/format-${{ github.ref_name }}
           commit-message: "chore(format): 🤖 ✨"
           delete-branch: true
           labels: 🤖 bot
