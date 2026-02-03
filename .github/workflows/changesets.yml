@@ -5,7 +5,7 @@ on:
     inputs:
       TURBO_TEAM:
         required: false
-        description: 'Needed for using turborepo with remote caching'
+        description: "Needed for using turborepo with remote caching"
         type: string
     secrets:
       ECOSPARK_APP_ID:
@@ -14,8 +14,10 @@ on:
         required: true
       TURBO_TOKEN:
         required: false
-        description: 'Needed for using turborepo with remote caching'
-
+        description: "Needed for using turborepo with remote caching"
+      NPM_TOKEN:
+        required: false
+        description: "NPM token for private @sanity packages"
 
 concurrency: ${{ github.repository_owner_id }}-${{ github.workflow }}-${{ github.ref }}
 
@@ -63,7 +65,13 @@ jobs:
         # temporary until setup-node action comes with npm version that contains oidc setup by default
       - name: Update npm to use trusted publishing (OIDC)
         run: npm install -g npm@latest
+      - name: Authenticate with private npm
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - run: pnpm install
+      - name: Remove npm auth
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: rm -f ~/.npmrc
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
