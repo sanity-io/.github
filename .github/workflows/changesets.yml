@@ -31,6 +31,7 @@ jobs:
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ inputs.TURBO_TEAM }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     permissions:
       contents: read # for checkout
       id-token: write # to enable use of OIDC for npm provenance
@@ -66,11 +67,11 @@ jobs:
       - name: Update npm to use trusted publishing (OIDC)
         run: npm install -g npm@latest
       - name: Authenticate with private npm
-        if: ${{ secrets.NPM_TOKEN != '' }}
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+        if: ${{ env.NPM_TOKEN != '' }}
+        run: echo "//registry.npmjs.org/:_authToken=${{ env.NPM_TOKEN }}" > ~/.npmrc
       - run: pnpm install
       - name: Remove npm auth
-        if: ${{ secrets.NPM_TOKEN != '' }}
+        if: ${{ env.NPM_TOKEN != '' }}
         run: rm -f ~/.npmrc
       - name: Create Release Pull Request or Publish to npm
         id: changesets
