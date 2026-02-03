@@ -69,6 +69,9 @@ jobs:
         if: ${{ secrets.NPM_TOKEN != '' }}
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - run: pnpm install
+      - name: Remove npm auth
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: rm -f ~/.npmrc
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
