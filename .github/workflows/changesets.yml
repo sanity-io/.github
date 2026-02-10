@@ -81,4 +81,4 @@ jobs:
           setupGitUser: false
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-          NPM_CONFIG_PROVENANCE: ${{ github.event.repository.visibility == 'public' }}
+          NPM_CONFIG_PROVENANCE: ${{ github.event.repository.visibility == 'public' && 'true' || 'false' }}
