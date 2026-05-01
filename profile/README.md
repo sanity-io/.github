@@ -12,7 +12,7 @@
 
 ---
 
-Sanity is a [Content Operating System][intro] that turns content into structured, reusable data. We give developers complete control over how content is modeled, managed, and delivered.
+Sanity is the [Content Operating System][intro] for the AI era. Model your content as code, store it in a real-time API, and use it everywhere: websites, mobile apps, agentic applications, and the editorial workflows in between.
 
 ## Quick Links
 
@@ -20,12 +20,13 @@ Sanity is a [Content Operating System][intro] that turns content into structured
 
 ## Why Developers Choose Sanity
 
-- **[Content Lake][content-lake]**: Real-time database for structured content - query with [GROQ][groq], access via HTTP APIs from any language
-- **[Schema-as-code][schemas]**: Define content models in TypeScript/JavaScript, version control them, get automatic [type generation][typegen]
-- **[Real-time][realtime]**: Live queries, collaborative editing, instant previews built-in
-- **[Customizable][studio-custom]**: React-based Studio you can customize completely, plus [App SDK][app-sdk] for organization-wide applications
-- **Framework agnostic**: Works with Next.js, Remix, Astro, or any framework
-- **[AI-ready][app-sdk]**: Structured content with rich context that AI can use effectively
+- **[Content Lake][content-lake]**: Real-time database for structured content. Query with [GROQ][groq], or access it over HTTP from any language.
+- **[Schema-as-code][schemas]**: Define content models in TypeScript, version control them, and get automatic [type generation][typegen] for queries and documents.
+- **Real-time and collaborative**: Live queries, multiplayer editing, and instant previews are part of the platform.
+- **[Studio][studio-custom] + [App SDK][app-sdk]**: A customizable React-based editorial environment, plus an SDK with hooks and stores for building custom content apps on top of Sanity.
+- **AI agents and content automation**: The [MCP server][mcp] lets Claude, Cursor, and VS Code read and edit your content with full schema context. [Agent Actions][agent-actions] generate, transform, and translate content with LLMs. [Canvas][canvas] turns free-form drafts into structured documents.
+- **[Functions][functions]**: Serverless logic that runs on content changes. No infrastructure to maintain.
+- **Framework agnostic**: Works with Next.js, Astro, Nuxt, React Router, SvelteKit, or any framework.
 
 <details>
 <summary>See code examples</summary>
@@ -101,7 +102,7 @@ This [creates a Sanity project][installation] with Studio and connects you to th
 
 ## Trusted By
 
-Sanity powers content operations for teams at **Figma**, **Spotify**, **Shopify**, **Riot Games**, **Linear**, **Cloudflare**, **Netlify**, **Replit**, **PUMA**, **Nike**, **Supreme**, **Condé Nast**, **AT&T**, **Samsung**, and thousands more.
+Sanity powers content operations for teams at **Spotify**, **Shopify**, **Figma**, **Unity**, **Linear**, **Anthropic**, **MoMA**, **Brex**, **Arc'teryx**, **Tecovas**, and thousands more.
 
 ## Community & Resources
 
@@ -114,11 +115,13 @@ Sanity powers content operations for teams at **Figma**, **Spotify**, **Shopify*
 
 ## Key Repositories
 
-- **[sanity](https://github.com/sanity-io/sanity)**: The core Sanity toolkit, Studio, and CLI
+- **[sanity](https://github.com/sanity-io/sanity)**: Core toolkit, Studio, and CLI
+- **[sdk](https://github.com/sanity-io/sdk)**: App SDK for building custom content applications on top of Sanity
 - **[next-sanity](https://github.com/sanity-io/next-sanity)**: Sanity toolkit for Next.js
+- **[agent-toolkit](https://github.com/sanity-io/agent-toolkit)**: Building blocks for AI agents working with Sanity content
+- **[visual-editing](https://github.com/sanity-io/visual-editing)**: Tools for live visual editing
 - **[GROQ](https://github.com/sanity-io/GROQ)**: Specification for the GROQ query language
 - **[groq-js](https://github.com/sanity-io/groq-js)**: JavaScript implementation of GROQ
-- **[visual-editing](https://github.com/sanity-io/visual-editing)**: Tools for live visual editing with Sanity
 - **[document-internationalization](https://github.com/sanity-io/document-internationalization)**: Plugin for translating documents across languages
 
 ## Contributing
@@ -139,7 +142,11 @@ We welcome contributions to our open source projects. Check each repository's CO
 [realtime]: https://www.sanity.io/docs/content-lake/realtime-updates
 [studio-custom]: https://www.sanity.io/docs/studio/studio-customization
 [app-sdk]: https://www.sanity.io/docs/app-sdk/sdk-introduction
-[installation]: https://www.sanity.io/docs/studio/installation
+[agent-actions]: https://www.sanity.io/docs/agent-actions
+[mcp]: https://www.sanity.io/docs/ai/mcp-server
+[canvas]: https://www.sanity.io/canvas
+[functions]: https://www.sanity.io/docs/functions
+[installation]: https://www.sanity.io/docs/sanity-studio-quickstart/setting-up-your-studio
 [pricing]: https://www.sanity.io/pricing
 [sanity-repo]: https://github.com/sanity-io/sanity
 [blog]: https://www.sanity.io/blog
