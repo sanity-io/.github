@@ -8,16 +8,10 @@ For all findings, we ask the researchers to use a structured report similar to O
 
 We will work with the reporting party to fix the findings, and commit to publicly crediting the issues when possible. Maintaining a healthy relationship with the security community is very important for us, and we will strive to be as transparent and communicative as we can be during this process.
 
+For more details, please see our [Responsible Disclosure Policy](https://sanity.io/responsible-disclosure).
 
 Thank you for your help in making Sanity safer to use for everyone!
 
-### Bug Bounty Program information
-
-Sanity has a bugbounty program: http://sanity.io/bugbounty - please read the policy and submit as you see fit!
-
-
 -----
-
-Thank you,
 
 For questions or comments on this policy, reach out to security@sanity.io
