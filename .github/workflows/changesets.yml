@@ -7,6 +7,16 @@ on:
         required: false
         description: "Needed for using turborepo with remote caching"
         type: string
+      versionPrTitle:
+        required: false
+        description: "Title for the Version Packages pull request. Set to e.g. 'chore: version packages' to satisfy conventional-commit PR title checks."
+        type: string
+        default: "Version Packages"
+      versionCommitMessage:
+        required: false
+        description: "Commit message for the version bump commit. Recommend matching versionPrTitle when overriding it."
+        type: string
+        default: "Version Packages"
     secrets:
       ECOSPARK_APP_ID:
         required: true
@@ -78,6 +88,8 @@ jobs:
         uses: changesets/action@c48e67d110a68bc90ccf1098e9646092baacaa87 # v1.6.0
         with:
           publish: pnpm release
+          title: ${{ inputs.versionPrTitle }}
+          commit: ${{ inputs.versionCommitMessage }}
           setupGitUser: false
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
