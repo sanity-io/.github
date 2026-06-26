@@ -72,6 +72,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           cache: pnpm
+          check-latest: true
           node-version: lts/*
         # temporary until setup-node action comes with npm version that contains oidc setup by default
       - name: Update npm to use trusted publishing (OIDC)
