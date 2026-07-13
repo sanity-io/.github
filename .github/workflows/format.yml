@@ -21,10 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/setup@v1
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
         with:
-          cache: true
-          runtime: node@lts
+          cache: pnpm
+          node-version: lts/*
+      - run: pnpm install
       - run: pnpm format
       - run: git restore .github/workflows pnpm-lock.yaml
       - uses: actions/create-github-app-token@v3
