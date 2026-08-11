@@ -114,15 +114,21 @@ jobs:
 
       # Demoting a release after the fact is not an option: unmarking "Latest" does not promote
       # the previous release back, so it has to be correct at creation time.
+      #
+      # Deliberately not gated on `steps.changesets.outputs.published`. That output is only true
+      # when `changeset publish` reported a new tag, so if the job died after npm had accepted
+      # the package, a rerun would report false and this step would never create the release,
+      # leaving a published version with no release and no way to recover short of doing it by
+      # hand. Keying off unreleased tags on the release commit instead makes a rerun repair it.
       - name: Create GitHub releases without marking them latest
-        if: ${{ !inputs.githubReleaseLatest && steps.changesets.outputs.published == 'true' }}
+        if: ${{ !inputs.githubReleaseLatest }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
 
           # `changeset publish` tags locally, and with createGithubReleases disabled the action
-          # does not push them. Tags it just created are the ones pointing at HEAD.
+          # does not push them. Tags it created are the ones pointing at HEAD.
           tags="$(git tag --points-at HEAD)"
           if [ -z "$tags" ]; then
             echo "No tags at HEAD, nothing to release"
@@ -139,6 +145,10 @@ jobs:
           import {existsSync, readFileSync} from 'node:fs'
           import {join} from 'node:path'
 
+          // Exit code reserved for "this tag is not something we should release", as opposed to
+          // a genuine failure, so the caller can skip it rather than fail the run.
+          const SKIP = 3
+
           const [, , tag, packagesPath] = process.argv
           const packages = JSON.parse(readFileSync(packagesPath, 'utf8'))
 
@@ -151,33 +161,82 @@ jobs:
           const pkg = name
             ? packages.find((p) => p.name === name)
             : (packages.find((p) => p.path === process.cwd()) ?? packages[0])
-          if (!pkg) throw new Error(`Could not find the package for tag ${tag}`)
+          if (!pkg) {
+            console.error(`No package in this repo matches tag ${tag}`)
+            process.exit(SKIP)
+          }
 
+          // Changelogs can be turned off. changesets/action skips the release entirely in that
+          // case, so do the same rather than publishing an empty one.
           const changelogPath = join(pkg.path, 'CHANGELOG.md')
-          // Changelogs can be turned off, in which case there are simply no notes.
-          if (!existsSync(changelogPath)) process.exit(0)
+          if (!existsSync(changelogPath)) {
+            console.error(`No CHANGELOG.md in ${pkg.path}`)
+            process.exit(SKIP)
+          }
 
-          const isHeading = (line) => line.startsWith('## ')
+          const lines = readFileSync(changelogPath, 'utf8').split('\n')
+
+          // A `## ` line inside a fenced code block is not a heading. changesets/action parses
+          // the changelog as markdown and gets this for free; here the fences are tracked by
+          // hand, otherwise a code sample in an entry would truncate the notes.
+          let fence = null
+          const isHeading = lines.map((line) => {
+            const fenceMatch = line.match(/^ {0,3}(`{3,}|~{3,})/)
+            if (fence !== null) {
+              if (
+                fenceMatch &&
+                fenceMatch[1][0] === fence[0] &&
+                fenceMatch[1].length >= fence.length
+              ) {
+                fence = null
+              }
+              return false
+            }
+            if (fenceMatch) {
+              fence = fenceMatch[1]
+              return false
+            }
+            return line.startsWith('## ')
+          })
+
           const headingVersion = (line) =>
             line.slice(3).trim().split(/\s+/)[0].replace(/^\[/, '').replace(/\].*$/, '')
 
-          const lines = readFileSync(changelogPath, 'utf8').split('\n')
-          const start = lines.findIndex((l) => isHeading(l) && headingVersion(l) === version)
+          const start = lines.findIndex((line, i) => isHeading[i] && headingVersion(line) === version)
           if (start === -1) {
             throw new Error(`No changelog entry for ${version} in ${changelogPath}`)
           }
 
-          const rest = lines.slice(start + 1)
-          const end = rest.findIndex(isHeading)
-          console.log((end === -1 ? rest : rest.slice(0, end)).join('\n').trim())
+          let end = lines.length
+          for (let i = start + 1; i < lines.length; i++) {
+            if (isHeading[i]) {
+              end = i
+              break
+            }
+          }
+
+          console.log(lines.slice(start + 1, end).join('\n').trim())
           NOTES_EOF
 
           for tag in $tags; do
+            # Also the idempotency guard that lets a rerun finish a partially failed release.
             if gh release view "$tag" >/dev/null 2>&1; then
               echo "Release $tag already exists, skipping"
               continue
             fi
 
+            status=0
+            node "$RUNNER_TEMP/release-notes.mjs" "$tag" "$RUNNER_TEMP/packages.json" \
+              > "$RUNNER_TEMP/notes.md" || status=$?
+            if [ "$status" -eq 3 ]; then
+              echo "Skipping $tag"
+              continue
+            elif [ "$status" -ne 0 ]; then
+              echo "Failed to build release notes for $tag"
+              exit "$status"
+            fi
+
+            # No-op when the tag is already on the remote, which it will be on a rerun.
             git push "$remote" "refs/tags/${tag}"
 
             case "$tag" in
@@ -185,9 +244,6 @@ jobs:
               v*) version="${tag#v}" ;;
               *) version="$tag" ;;
             esac
-
-            node "$RUNNER_TEMP/release-notes.mjs" "$tag" "$RUNNER_TEMP/packages.json" \
-              > "$RUNNER_TEMP/notes.md"
 
             prerelease=()
             case "$version" in *-*) prerelease=(--prerelease) ;; esac
