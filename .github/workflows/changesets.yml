@@ -17,6 +17,16 @@ on:
         description: "Commit message for the version bump commit. Recommend matching versionPrTitle when overriding it."
         type: string
         default: "Version Packages"
+      npmTag:
+        required: false
+        description: "npm dist-tag to publish under. On a maintenance branch for an older major set this to e.g. 'latest-v7', so releases from it do not take 'latest' from the current major. Note that npm rejects a dist-tag that parses as a semver range, so 'v7', '7' and '7.x' are all invalid."
+        type: string
+        default: "latest"
+      githubReleaseLatest:
+        required: false
+        description: "Whether the GitHub release should be marked as 'Latest'. Set to false on a maintenance branch, otherwise a patch for an older major takes the badge from the current major."
+        type: boolean
+        default: true
     secrets:
       ECOSPARK_APP_ID:
         required: true
@@ -88,10 +98,105 @@ jobs:
         id: changesets
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
-          publish: pnpm release
+          # Only append --tag when it is not the default, so the publish command stays byte for
+          # byte what it was for every caller that has not opted in.
+          publish: ${{ inputs.npmTag == 'latest' && 'pnpm release' || format('pnpm release --tag {0}', inputs.npmTag) }}
           title: ${{ inputs.versionPrTitle }}
           commit: ${{ inputs.versionCommitMessage }}
           setupGitUser: false
+          # The action creates releases without `make_latest`, so GitHub marks whichever was
+          # created most recently as "Latest". When that is not wanted we skip its release
+          # creation and do it ourselves in the next step.
+          createGithubReleases: ${{ inputs.githubReleaseLatest }}
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           NPM_CONFIG_PROVENANCE: ${{ github.event.repository.visibility == 'public' && 'true' || 'false' }}
+
+      # Demoting a release after the fact is not an option: unmarking "Latest" does not promote
+      # the previous release back, so it has to be correct at creation time.
+      - name: Create GitHub releases without marking them latest
+        if: ${{ !inputs.githubReleaseLatest && steps.changesets.outputs.published == 'true' }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+
+          # `changeset publish` tags locally, and with createGithubReleases disabled the action
+          # does not push them. Tags it just created are the ones pointing at HEAD.
+          tags="$(git tag --points-at HEAD)"
+          if [ -z "$tags" ]; then
+            echo "No tags at HEAD, nothing to release"
+            exit 0
+          fi
+
+          # checkout ran with persist-credentials: false, so push over an explicitly
+          # authenticated remote rather than relying on stored credentials.
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          pnpm list --recursive --depth -1 --json > "$RUNNER_TEMP/packages.json"
+
+          cat > "$RUNNER_TEMP/release-notes.mjs" <<'NOTES_EOF'
+          import {existsSync, readFileSync} from 'node:fs'
+          import {join} from 'node:path'
+
+          const [, , tag, packagesPath] = process.argv
+          const packages = JSON.parse(readFileSync(packagesPath, 'utf8'))
+
+          // changesets tags a single-package repo as `v1.2.3`, and each package in a workspace
+          // as `name@1.2.3`, including scoped names like `@sanity/client@1.2.3`.
+          const at = tag.lastIndexOf('@')
+          const name = at > 0 ? tag.slice(0, at) : null
+          const version = at > 0 ? tag.slice(at + 1) : tag.replace(/^v/, '')
+
+          const pkg = name
+            ? packages.find((p) => p.name === name)
+            : (packages.find((p) => p.path === process.cwd()) ?? packages[0])
+          if (!pkg) throw new Error(`Could not find the package for tag ${tag}`)
+
+          const changelogPath = join(pkg.path, 'CHANGELOG.md')
+          // Changelogs can be turned off, in which case there are simply no notes.
+          if (!existsSync(changelogPath)) process.exit(0)
+
+          const isHeading = (line) => line.startsWith('## ')
+          const headingVersion = (line) =>
+            line.slice(3).trim().split(/\s+/)[0].replace(/^\[/, '').replace(/\].*$/, '')
+
+          const lines = readFileSync(changelogPath, 'utf8').split('\n')
+          const start = lines.findIndex((l) => isHeading(l) && headingVersion(l) === version)
+          if (start === -1) {
+            throw new Error(`No changelog entry for ${version} in ${changelogPath}`)
+          }
+
+          const rest = lines.slice(start + 1)
+          const end = rest.findIndex(isHeading)
+          console.log((end === -1 ? rest : rest.slice(0, end)).join('\n').trim())
+          NOTES_EOF
+
+          for tag in $tags; do
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "Release $tag already exists, skipping"
+              continue
+            fi
+
+            git push "$remote" "refs/tags/${tag}"
+
+            case "$tag" in
+              *@*) version="${tag##*@}" ;;
+              v*) version="${tag#v}" ;;
+              *) version="$tag" ;;
+            esac
+
+            node "$RUNNER_TEMP/release-notes.mjs" "$tag" "$RUNNER_TEMP/packages.json" \
+              > "$RUNNER_TEMP/notes.md"
+
+            prerelease=()
+            case "$version" in *-*) prerelease=(--prerelease) ;; esac
+
+            echo "Creating release $tag (latest=false)"
+            gh release create "$tag" \
+              --title "$tag" \
+              --notes-file "$RUNNER_TEMP/notes.md" \
+              --latest=false \
+              --verify-tag \
+              "${prerelease[@]}"
+          done
