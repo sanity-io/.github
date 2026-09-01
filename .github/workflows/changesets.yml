@@ -75,8 +75,9 @@ jobs:
           check-latest: true
           node-version: lts/*
         # temporary until setup-node action comes with npm version that contains oidc setup by default
+        # pin to 11: npm 12 wraps `info --json` in an array; @changesets/cli pnpm parser does not unwrap it (changesets/changesets#2274)
       - name: Update npm to use trusted publishing (OIDC)
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
       - name: Authenticate with private npm
         if: ${{ env.NPM_TOKEN != '' }}
         run: echo "//registry.npmjs.org/:_authToken=${{ env.NPM_TOKEN }}" > ~/.npmrc
